@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+data/
+model_fit_safetymargin/
