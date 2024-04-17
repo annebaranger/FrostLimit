@@ -13,7 +13,7 @@ library(data.table); library(terra)
 source("phenofit/imfusion/scripts/functions/read_phenofit_output.R")
 
 ## 1. Lire les sorties pour Fagus
-species <- "abies_alba"
+species <- "fagus_sylvatica_new"
 
 #'abies_alba
 #'fagus_sylvatica
@@ -26,8 +26,11 @@ species <- "abies_alba"
 sim.path <- file.path("phenofit","imfusion", "data", "simulations", "historical", "ERA5-LAND", "phenofit", species)
 
 # on utilise la fonction chargée pour lire la sortie (Fitness ici)
-fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
-                                output.var = "Fitness")
+#fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
+                                #output.var = "Fitness")
+fitness <- read_phenofit_output(sim.path, years = c(1985:2020), 
+                                  output.var = "Fitness")
+
 
 # on peut la transformer en raster (pour visualiser rapidement)
 fitness.r <- rast(fitness, crs = "EPSG:4326")
@@ -58,7 +61,7 @@ library(sp)
 #' Quercus ilex
 #' Quercus robur
 
-sp="Abies alba"
+sp="Fagus sylvatica"
 
 #choix du bon modele
 liste_modele <- read.csv("model_fit_safetymargin/output_safmarg_era.csv", sep = ";", header = TRUE)
@@ -249,7 +252,7 @@ opt_prob=thresholds[which.max(tss_sfm)]
 
 
 # Utilisation de sample pour sélectionner 5000 indices aléatoires parmi les indices des points existants
-indices_aleatoires <- sample(length(tss$x), 5000)
+indices_aleatoires <- sample(length(tss$x), 20000)
 
 # Sélection des points correspondant à ces indices
 x_aleatoire <- tss$x[indices_aleatoires]
@@ -328,7 +331,7 @@ print(opt_prob_ph)
 #'très faible masquée par les autres points -> rélger l'hisoitre des points qui se masquent , afficher que les présences ? 
 #'et ensuite on voit si c'était vraiment ça le pb ou pas 
 #'quercus ilex 0.9175907 parait élevé mais carte semble ok 
-#'
+#'fagus sylvatica 85/20 0.998 -> carte littéralement vide , mm pb qu'abies alba
 
 
 #remplacer par 0 et 1 et sortir les cartes 
@@ -362,22 +365,8 @@ tss_ech |>
 #'pb pour plus tard voir abies albas pb d'abord 
 
 
-tss_ech |> 
-  #mutate(pred_presence=pred>opt_prob) |> #presence vraie ou fausse
-  #mutate(pred_presence_ph=pred_phenofit>opt_prob_ph)
-  group_by(presence) |> 
-  #sample_n(600) |> #il veut 693 car c'est le nb de 1 présence 
-  pivot_longer(cols=c("presence","pred","pred_phenofit")) |> 
-  ggplot()+
-  geom_point(aes(x=x,y=y,color=value,),position = position_dodge(width = 0.5))+
-  geom_sf(data=worldmap,fill=NA)+
-  xlim(-20,35)+
-  ylim(27,73)+
-  facet_wrap(~name)+
-  ggtitle(paste0("Prediction vs observation MA et pheno de ",sp)) 
-
-
-
+nombre_de_1 <- sum(tss_ech$pred_phenofit == 1)
+print(nombre_de_1)
 
 
 
