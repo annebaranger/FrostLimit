@@ -13,7 +13,15 @@ library(data.table); library(terra)
 source("phenofit/imfusion/scripts/functions/read_phenofit_output.R")
 
 ## 1. Lire les sorties pour Fagus
-species <- "fagus_sylvatica"
+species <- "abies_alba"
+
+#'abies_alba
+#'fagus_sylvatica
+#'quercus_ilex
+#'quercus_robur
+#'fagus_sylvatica_new
+
+
 
 sim.path <- file.path("phenofit","imfusion", "data", "simulations", "historical", "ERA5-LAND", "phenofit", species)
 
@@ -50,7 +58,7 @@ library(sp)
 #' Quercus ilex
 #' Quercus robur
 
-sp="Fagus sylvatica"
+sp="Abies alba"
 
 #choix du bon modele
 liste_modele <- read.csv("model_fit_safetymargin/output_safmarg_era.csv", sep = ";", header = TRUE)
@@ -129,9 +137,9 @@ occurence |>
                  breaks=c(-Inf, -15, -10, -5,-3, -2, -1, 0,1,2,3,5,Inf)), #de - l'infini à +l'infini
          fsm=cut(fsm,
                  breaks=c(-Inf, -50,-40, -30,-20,-15,-10,-5,0,5,10,Inf))
-  ) |> 
+  ) |>
   #'crée des classes d'intervalles avec cut (il faut couper) et breaks (points de coupure) de hsm et fsm
-  sample_n(20000) |> 
+  sample_n(20000) |>
   ggplot(aes(x=x,y=y,color=hsm))+
   geom_point()+
   scale_color_brewer(palette="RdYlBu")
@@ -258,12 +266,18 @@ ggplot()+
 tss_ech <- tss |>
   filter(x%in%x_aleatoire)
 
+tss_ech$pred <- ifelse(
+  tss_ech$pred < opt_prob, # si la fitness est inférieure au seuil:
+  0, # on considère que l'espèce est absente (=0)
+  1 # sinon: on considère que l'espèce est présente (=1)
+)
 
 tss_ech |> 
-  mutate(pred_presence=pred>opt_prob) |> 
+  #mutate(pred_presence=pred>opt_prob) |> en gros si je fais tout apparaitre sur la carte pres
+  #et absence les abs "cachent" les pres, détail d'affichage dc ok pour là 
   group_by(presence) |> 
-  sample_n(600) |> #alors là c'est quand même mystérieux ... a explorer
-  pivot_longer(cols=c("presence","pred_presence")) |> 
+  #sample_n(600) |> 
+  pivot_longer(cols=c("presence","pred")) |> 
   ggplot()+
   geom_point(aes(x=x,y=y,color=value))+
   geom_sf(data=worldmap,fill=NA)+
@@ -309,9 +323,59 @@ opt_prob_ph=thresholds_ph[which.max(tss_sfm_ph)]
 print(opt_prob_ph)
 
 ## ça fait un seuil très différent de celui que victor a trouvé (0.162)mais en même temps mon nombre de points est très limité...? 
+#'fagus plus ou moins ok mais éloigné (0,4..) mais carte ok 
+#'abies alba 0,99 donc catastrohique (à revoir ?) -> ok hypothèse peut être juste présence 
+#'très faible masquée par les autres points -> rélger l'hisoitre des points qui se masquent , afficher que les présences ? 
+#'et ensuite on voit si c'était vraiment ça le pb ou pas 
+#'quercus ilex 0.9175907 parait élevé mais carte semble ok 
+#'
 
 
-#utiliser ce seuil pour avoir les cartes de presence/absence
+#remplacer par 0 et 1 et sortir les cartes 
+
+tss_ech$pred_phenofit <- ifelse(
+  tss_ech$pred_phenofit < opt_prob_ph, # si la fitness est inférieure au seuil:
+  0, # on considère que l'espèce est absente (=0)
+  1 # sinon: on considère que l'espèce est présente (=1)
+)
+
+
+tss_ech |> 
+  #mutate(pred_presence=pred>opt_prob) |> #presence vraie ou fausse
+  #mutate(pred_presence_ph=pred_phenofit>opt_prob_ph)
+  group_by(presence) |> 
+  #sample_n(600) |> #il veut 693 car c'est le nb de 1 présence 
+  pivot_longer(cols=c("presence","pred","pred_phenofit")) |> 
+  ggplot()+
+  geom_point(aes(x=x,y=y,color=value))+
+  geom_sf(data=worldmap,fill=NA)+
+  xlim(-20,35)+
+  ylim(27,73)+
+  facet_wrap(~name)+
+  ggtitle(paste0("Prediction vs observation MA et pheno de ",sp)) 
+
+
+#'a faire -> essayer d'afficher que les 1 pour les présences réelles sinon carte illisible 
+#'geom_point(position = position_dodge(width = 0.5)) + -> décale les points 1 vers le "haut" et les 0 vers le bas 
+#'non ne fait pas ça en fait, il faudrait classer par value pour avoir les points 1 tracés après les 0 
+#'mais à voir si ça me fout pas le bordel dans l'ordre des colones 
+#'pb pour plus tard voir abies albas pb d'abord 
+
+
+tss_ech |> 
+  #mutate(pred_presence=pred>opt_prob) |> #presence vraie ou fausse
+  #mutate(pred_presence_ph=pred_phenofit>opt_prob_ph)
+  group_by(presence) |> 
+  #sample_n(600) |> #il veut 693 car c'est le nb de 1 présence 
+  pivot_longer(cols=c("presence","pred","pred_phenofit")) |> 
+  ggplot()+
+  geom_point(aes(x=x,y=y,color=value,),position = position_dodge(width = 0.5))+
+  geom_sf(data=worldmap,fill=NA)+
+  xlim(-20,35)+
+  ylim(27,73)+
+  facet_wrap(~name)+
+  ggtitle(paste0("Prediction vs observation MA et pheno de ",sp)) 
+
 
 
 
