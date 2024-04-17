@@ -13,7 +13,7 @@ library(pROC)
 #' Quercus ilex
 #' Quercus robur
 
-sp="Abies alba"
+sp="Fagus sylvatica"
 
 #choix du bon modele
 liste_modele <- read.csv("model_fit_safetymargin/output_safmarg_era.csv", sep = ";", header = TRUE)
@@ -223,7 +223,12 @@ tss |>
 
 ## avoir la carte des biomes 
 
-biome=sf::st_read(dsn="C:/Users/emili/OneDrive/Documents/Stage MFE/FrostLimit/wetransfer_biome-wwf_2024-03-12_0859/official",layer="wwf_terr_ecos") 
-  
-plot(biome)
+biome=sf::st_read(dsn="C:/Users/emili/OneDrive/Documents/Stage MFE/FrostLimit/wetransfer_biome-wwf_2024-03-12_0859/official",layer="wwf_terr_ecos") #attention chemiiiinnn
+
+plot(biome$geometry[1:200]) #ne pas faire ça !!!!!!!!!! choisis un seul truc avant de ploter parce que là ça plot 12 cartes
+
+
+
+
+
 
