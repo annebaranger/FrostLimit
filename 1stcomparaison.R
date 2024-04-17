@@ -5,6 +5,8 @@ library(dplyr)
 library(ggplot2)
 library(sf)
 library(pROC)
+library(raster)
+library(sp)
 
 #' Liste des espèces à étudier
 #' Abies alba
@@ -110,10 +112,10 @@ occurence |>
          fsm=cut(fsm,
                  breaks=c(-Inf, -50,-40, -30,-20,-15,-10,-5,0,5,10,Inf))
   ) |> 
-  sample_n(20000) #|> 
-  #ggplot(aes(x=x,y=y,color=fsm))+
-  #geom_point()+
-  #scale_color_brewer(palette="RdYlBu") #même chose mais pour fsm 
+  sample_n(20000) |>
+  ggplot(aes(x=x,y=y,color=fsm))+
+  geom_point()+
+  scale_color_brewer(palette="RdYlBu") #même chose mais pour fsm 
 
 
 
@@ -131,7 +133,7 @@ post |>
                                     fsm.95,
                                     length.out=100), #on tire 100 fsm et 100 hsm
                                 seq(hsm.05,
-                                    hsm.95,#pou rne pas être limité par la hsm
+                                    hsm.95,
                                     length.out=100)),# on les combine avec crossing :
                       #toutes les valeurs tirées avec tous les jeux de variables
                       xsm_name=c(rep("fsm",100),
@@ -173,7 +175,7 @@ post_med<-apply(post,MARGIN=2,median) #on prend la médiane de post
 tss<-occurence |> 
   mutate(pred=post_med[["K_int"]]/
            ((1+exp(-post_med[["r_fsm"]]*(fsm-post_med[["t_fsm"]])))*
-              (1+exp(-post_med[["r_hsm"]]*(hsm.999-post_med[["t_hsm"]]))))) |> #pour fixer hsm
+              (1+exp(-post_med[["r_hsm"]]*(hsm-post_med[["t_hsm"]]))))) |> 
   filter(!is.na(fsm),!is.na(hsm))
 #on lui donne occurence et on calcule les proba de présence 
 
@@ -236,7 +238,7 @@ tss_ech <- tss |>
 tss_ech |> 
   mutate(pred_presence=pred>opt_prob) |> 
   group_by(presence) |> 
-  sample_n(700) |> #alors là c'est quand même mystérieux ... a explorer
+  sample_n(600) |> #alors là c'est quand même mystérieux ... a explorer
   pivot_longer(cols=c("presence","pred_presence")) |> 
   ggplot()+
   geom_point(aes(x=x,y=y,color=value))+
@@ -313,7 +315,7 @@ tss_ech<- mutate(tss_ech,pred_phenofit=pred_phenofit_df$val)
 tss_ech |> 
   mutate(pred_presence=pred>opt_prob) |> #presence vraie ou fausse
   group_by(presence) |> 
-  sample_n(700) |> #il veut 788 car c'est le nb de 1 présence 
+  sample_n(600) |> #il veut 693 car c'est le nb de 1 présence 
   pivot_longer(cols=c("presence","pred_presence","pred_phenofit")) |> 
   ggplot()+
   geom_point(aes(x=x,y=y,color=value))+
