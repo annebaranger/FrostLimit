@@ -13,7 +13,7 @@ library(data.table); library(terra)
 source("phenofit/imfusion/scripts/functions/read_phenofit_output.R")
 
 ## 1. Lire les sorties pour Fagus
-species <- "fagus_sylvatica_new"
+species <- "abies_alba"
 
 #'abies_alba
 #'fagus_sylvatica
@@ -26,9 +26,9 @@ species <- "fagus_sylvatica_new"
 sim.path <- file.path("phenofit","imfusion", "data", "simulations", "historical", "ERA5-LAND", "phenofit", species)
 
 # on utilise la fonction chargée pour lire la sortie (Fitness ici)
-#fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
+fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
                                 #output.var = "Fitness")
-fitness <- read_phenofit_output(sim.path, years = c(1985:2020), 
+#fitness <- read_phenofit_output(sim.path, years = c(1985:2020), 
                                   output.var = "Fitness")
 
 
@@ -61,7 +61,7 @@ library(sp)
 #' Quercus ilex
 #' Quercus robur
 
-sp="Fagus sylvatica"
+sp="Abies alba"
 
 #choix du bon modele
 liste_modele <- read.csv("model_fit_safetymargin/output_safmarg_era.csv", sep = ";", header = TRUE)
@@ -124,7 +124,7 @@ worldmap <- st_as_sf(rworldmap::getMap(resolution = "high")) #installer rworldma
 
 occurence |>
   group_by(presence) |> #regroupe  les données en f de la colonne presence
-  sample_n(1000) |> #pioche 1 000 echantillons 
+  sample_n(1000) #pioche 1 000 echantillons 
   #ggplot()+
   #geom_point(aes(x=x,y=y,color=as.factor(presence)))+ #les points en couleur
   #geom_sf(data=worldmap,fill=NA)+ #on affiche la carte dessous sans couleur
@@ -317,9 +317,9 @@ calc_tss <- function(threshold, observed, predicted_probs) {
 }
 observed <- tss_ech$presence
 pred_ph<- tss_ech$pred_phenofit
-threshold_max_ph<-max(tss_ech$pred_phenofit) #doute sur cette ligne ...
+threshold_max_ph<-max(tss_ech$pred_phenofit) #on prend le max pour phenofit (ou 1 c'est pareil de toute façon)
 thresholds_ph <- seq(0,threshold_max_ph, length.out=100) 
-tss_sfm_ph <- sapply(thresholds, calc_tss, observed, pred_ph)
+tss_sfm_ph <- sapply(thresholds_ph, calc_tss, observed, pred_ph)
 #on cherche a connaitre le threshold qui maximise le TSS
 
 opt_prob_ph=thresholds_ph[which.max(tss_sfm_ph)]
