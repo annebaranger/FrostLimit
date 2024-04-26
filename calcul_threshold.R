@@ -12,8 +12,8 @@ library(data.table); library(terra)
 # On charge la fonction qui permet de lire les sorties PHENOFIT#source(file.path(wd, "scripts", "functions", "read_phenofit_output.R"))
 source("phenofit/imfusion/scripts/functions/read_phenofit_output.R")
 
-## 1. Lire les sorties pour Fagus
-species <- "abies_alba"
+## 1. Lire les sorties pour l'espèce
+species <- "fagus_sylvatica"
 
 #'abies_alba
 #'fagus_sylvatica
@@ -61,7 +61,7 @@ library(sp)
 #' Quercus ilex
 #' Quercus robur
 
-sp="Abies alba"
+sp="Fagus sylvatica"
 
 #choix du bon modele
 liste_modele <- read.csv("model_fit_safetymargin/output_safmarg_era.csv", sep = ";", header = TRUE)
@@ -252,7 +252,7 @@ opt_prob=thresholds[which.max(tss_sfm)]
 
 
 # Utilisation de sample pour sélectionner 5000 indices aléatoires parmi les indices des points existants
-indices_aleatoires <- sample(length(tss$x), 20000)
+indices_aleatoires <- sample(length(tss$x),5000 ) #241045
 
 # Sélection des points correspondant à ces indices
 x_aleatoire <- tss$x[indices_aleatoires]
@@ -325,13 +325,12 @@ tss_sfm_ph <- sapply(thresholds_ph, calc_tss, observed, pred_ph)
 opt_prob_ph=thresholds_ph[which.max(tss_sfm_ph)]
 print(opt_prob_ph)
 
-## ça fait un seuil très différent de celui que victor a trouvé (0.162)mais en même temps mon nombre de points est très limité...? 
-#'fagus plus ou moins ok mais éloigné (0,4..) mais carte ok 
-#'abies alba 0,99 donc catastrohique (à revoir ?) -> ok hypothèse peut être juste présence 
-#'très faible masquée par les autres points -> rélger l'hisoitre des points qui se masquent , afficher que les présences ? 
-#'et ensuite on voit si c'était vraiment ça le pb ou pas 
-#'quercus ilex 0.9175907 parait élevé mais carte semble ok 
-#'fagus sylvatica 85/20 0.998 -> carte littéralement vide , mm pb qu'abies alba
+
+#'fagus 0.1613659 avec données totales (0,162 victor) ok 
+#'abies alba 0.1308895 ok 
+#'quercus ilex 0.292419 ok 
+#'fagus sylvatica 85/20 0,69 ok
+#'quercus robur 
 
 
 #remplacer par 0 et 1 et sortir les cartes 
@@ -349,8 +348,10 @@ tss_ech |>
   group_by(presence) |> 
   #sample_n(600) |> #il veut 693 car c'est le nb de 1 présence 
   pivot_longer(cols=c("presence","pred","pred_phenofit")) |> 
+  #subset(value == 1) |> #pour n'afficher que les présences 
   ggplot()+
-  geom_point(aes(x=x,y=y,color=value))+
+  geom_point(aes(x=x,y=y,color=value,alpha= ifelse(value == 0, 0.5, 1)))+
+  scale_color_gradient(low = "lightgreen", high = "darkgreen")+
   geom_sf(data=worldmap,fill=NA)+
   xlim(-20,35)+
   ylim(27,73)+
@@ -358,15 +359,25 @@ tss_ech |>
   ggtitle(paste0("Prediction vs observation MA et pheno de ",sp)) 
 
 
-#'a faire -> essayer d'afficher que les 1 pour les présences réelles sinon carte illisible 
-#'geom_point(position = position_dodge(width = 0.5)) + -> décale les points 1 vers le "haut" et les 0 vers le bas 
-#'non ne fait pas ça en fait, il faudrait classer par value pour avoir les points 1 tracés après les 0 
-#'mais à voir si ça me fout pas le bordel dans l'ordre des colones 
-#'pb pour plus tard voir abies albas pb d'abord 
 
 
-nombre_de_1 <- sum(tss_ech$pred_phenofit == 1)
-print(nombre_de_1)
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+
 
 
 
