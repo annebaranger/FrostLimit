@@ -13,7 +13,7 @@ library(data.table); library(terra)
 source("phenofit/imfusion/scripts/functions/read_phenofit_output.R")
 
 ## 1. Lire les sorties pour l'espèce
-species <- "fagus_sylvatica"
+species <- "fagus_sylvatica_new"
 
 #'abies_alba
 #'fagus_sylvatica
@@ -26,9 +26,9 @@ species <- "fagus_sylvatica"
 sim.path <- file.path("phenofit","imfusion", "data", "simulations", "historical", "ERA5-LAND", "phenofit", species)
 
 # on utilise la fonction chargée pour lire la sortie (Fitness ici)
-fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
+#fitness <- read_phenofit_output(sim.path, years = c(1970:2000), 
                                 #output.var = "Fitness")
-#fitness <- read_phenofit_output(sim.path, years = c(1985:2020), 
+fitness <- read_phenofit_output(sim.path, years = c(1985:2020), 
                                   output.var = "Fitness")
 
 
@@ -252,7 +252,7 @@ opt_prob=thresholds[which.max(tss_sfm)]
 
 
 # Utilisation de sample pour sélectionner 5000 indices aléatoires parmi les indices des points existants
-indices_aleatoires <- sample(length(tss$x),5000 ) #241045
+indices_aleatoires <- sample(length(tss$x),241045)#
 
 # Sélection des points correspondant à ces indices
 x_aleatoire <- tss$x[indices_aleatoires]
@@ -326,12 +326,6 @@ opt_prob_ph=thresholds_ph[which.max(tss_sfm_ph)]
 print(opt_prob_ph)
 
 
-#'fagus 0.1613659 avec données totales (0,162 victor) ok 
-#'abies alba 0.1308895 ok 
-#'quercus ilex 0.292419 ok 
-#'fagus sylvatica 85/20 0,69 ok
-#'quercus robur 
-
 
 #remplacer par 0 et 1 et sortir les cartes 
 
@@ -359,14 +353,26 @@ tss_ech |>
   ggtitle(paste0("Prediction vs observation MA et pheno de ",sp)) 
 
 
+##calcul de la similarité avec la présence réelle 
+
+tss_ech$simil_ph<- ifelse(tss_ech$pred_phenofit==tss$presence,1,0)
+
+similitude_ph <- sum(tss_ech$simil==1)/nrow(tss_ech) * 100
+
+print(similitude_ph) 
+
+tss_ech$simil<- ifelse(tss_ech$pred==tss$presence,1,0)
+
+similitude <- sum(tss_ech$simil==1)/nrow(tss_ech) * 100
+
+print(similitude) 
+
+#'similitude plus grande avec MA alors qu'on dirait pas forcément sur la carte
+#'surement bcp plsu de 1 dans pheno alos qu'en présence réelle bcp d'absence aussi 
+#'
 
 
 
-
-  
-
-
-  
   
 
 
